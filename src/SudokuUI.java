@@ -1,11 +1,14 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.util.*;
+
+
 
 public class SudokuUI extends JFrame {
     private JTextField[][] cells = new JTextField[9][9];
     private int[][] puzzle;
-    
+    private int[][] solution;
+
 
     public SudokuUI() {
         setTitle("Sudoku Game");
@@ -39,6 +42,18 @@ public class SudokuUI extends JFrame {
         JButton hardBtn = new JButton("New Game (Difficult)");
         JButton checkBtn = new JButton("Check");
         JButton clearBtn = new JButton("Clear");
+        JButton hintBtn = new JButton("Hint");
+        
+        hintBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        hintBtn.addActionListener(e -> giveHint());
+
+        
+        JButton[] buttons = { easyBtn, hardBtn, checkBtn, clearBtn };
+        for (JButton btn : buttons) {
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+
+        
 
         easyBtn.addActionListener(e -> generatePuzzle(40));
         hardBtn.addActionListener(e -> generatePuzzle(55));
@@ -50,6 +65,8 @@ public class SudokuUI extends JFrame {
         controlPanel.add(hardBtn); 
         controlPanel.add(checkBtn);
         controlPanel.add(clearBtn);
+        controlPanel.add(hintBtn);
+
 
         add(gridPanel, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
@@ -59,17 +76,24 @@ public class SudokuUI extends JFrame {
 
     private void generatePuzzle(int blanks) {
         clearAll();
-        puzzle = SudokuGenerator.generate(blanks);
+        int[][][] generated = SudokuGenerator.generateWithSolution(blanks);
+        puzzle = generated[0];
+        solution = generated[1];
+
         for (int r = 0; r < 9; r++)
             for (int c = 0; c < 9; c++) {
-                if (puzzle[r][c] != 0) {
-                    cells[r][c].setText(String.valueOf(puzzle[r][c]));
-                    cells[r][c].setEditable(false);
-                    cells[r][c].setBackground(Color.LIGHT_GRAY);
-                } else {
-                    cells[r][c].setEditable(true);
-                    cells[r][c].setBackground(Color.WHITE);
-                }
+            	if (puzzle[r][c] != 0) {
+            	    cells[r][c].setText(String.valueOf(puzzle[r][c]));
+            	    cells[r][c].setEditable(false);
+            	    cells[r][c].setForeground(Color.BLACK);         
+            	    cells[r][c].setBackground(Color.LIGHT_GRAY);
+            	} else {
+            	    cells[r][c].setEditable(true);
+            	    cells[r][c].setText("");                        
+            	    cells[r][c].setForeground(new Color(30, 144, 255)); 
+            	    cells[r][c].setBackground(Color.WHITE);
+            	}
+
             }
     }
 
@@ -108,20 +132,70 @@ public class SudokuUI extends JFrame {
             for (int c = 0; c < 9; c++) {
                 int num = tempBoard[r][c];
                 if (num != 0) {
-                    tempBoard[r][c] = 0; // temporarily remove for validation
+                    tempBoard[r][c] = 0;
                     if (!isValid(tempBoard, r, c, num)) {
                         cells[r][c].setBackground(Color.PINK);
                         valid = false;
-                    } else if (cells[r][c].isEditable()) {
-                        cells[r][c].setBackground(Color.WHITE);
+                    } else {
+                        if (cells[r][c].isEditable())
+                            cells[r][c].setBackground(Color.WHITE);
+                        else
+                            cells[r][c].setBackground(Color.LIGHT_GRAY);
                     }
-                    tempBoard[r][c] = num; // restore value
+                    tempBoard[r][c] = num;
+                } else {
+                    if (cells[r][c].isEditable())
+                        cells[r][c].setBackground(Color.WHITE);
+                    else
+                        cells[r][c].setBackground(Color.LIGHT_GRAY);
                 }
             }
 
-        String message = valid ? "Board is valid!" : "There are rule violations!";
-        JOptionPane.showMessageDialog(this, message);
+        boolean complete = true;
+        for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++)
+                if (cells[r][c].getText().isEmpty()) {
+                    complete = false;
+                    break;
+                }
+
+        if (valid && complete) {
+            for (int r = 0; r < 9; r++)
+                for (int c = 0; c < 9; c++)
+                    cells[r][c].setBackground(new Color(200, 255, 200));
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(this, "Congratulations! You solved the puzzle!");
+        } else if (valid) {
+            JOptionPane.showMessageDialog(this, "Board is valid so far. Keep going!");
+        } else {
+            JOptionPane.showMessageDialog(this, "There are rule violations!");
+        }
     }
+
+    
+    private void giveHint() {
+    	java.util.List<Point> emptyCells = new ArrayList<>();
+
+        for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++)
+                if (cells[r][c].isEditable() && cells[r][c].getText().isEmpty())
+                    emptyCells.add(new Point(r, c));
+
+        if (emptyCells.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No available hints.");
+            return;
+        }
+
+        Collections.shuffle(emptyCells);
+        Point p = emptyCells.get(0);
+        int r = p.x, c = p.y;
+
+        int correct = solution[r][c];
+        cells[r][c].setText(String.valueOf(correct));
+        cells[r][c].setForeground(new Color(30, 144, 255)); 
+    }
+
+
 
     private boolean isValid(int[][] board, int row, int col, int val) {
         for (int i = 0; i < 9; i++) {
@@ -136,4 +210,6 @@ public class SudokuUI extends JFrame {
 
         return true;
     }
+    
+    
 }

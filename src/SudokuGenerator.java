@@ -1,17 +1,31 @@
 import java.util.Random;
+import java.util.Arrays;
+
 
 public class SudokuGenerator {
 	public static int[][] generate() {
-        return generate(40);
+		return generateWithSolution(40)[0];  
+
     }
 	
-    public static int[][] generate(int blanks) {
-        int[][] board = new int[9][9];
-        fillDiagonal(board);
-        SudokuSolver.solve(board);
-        removeCells(board, blanks);
-        return board;
-    }
+	public static int[][][] generateWithSolution(int blanks) {
+	    int[][] full = new int[9][9];
+	    fillDiagonal(full);
+	    SudokuSolver.solve(full);
+
+	    int[][] puzzle = copyBoard(full);
+	    removeCells(puzzle, blanks);
+
+	    return new int[][][] { puzzle, full }; 
+	}
+
+	private static int[][] copyBoard(int[][] src) {
+	    int[][] copy = new int[9][9];
+	    for (int i = 0; i < 9; i++)
+	        copy[i] = Arrays.copyOf(src[i], 9);
+	    return copy;
+	}
+
 
     private static void fillDiagonal(int[][] board) {
         Random rand = new Random();
