@@ -15,7 +15,7 @@ public class SudokuSolver {
         return true;
     }
 
-    private static boolean isValid(int[][] board, int row, int col, int num) {
+    public static boolean isValid(int[][] board, int row, int col, int num) {
         for (int i = 0; i < 9; i++)
             if (board[row][i] == num || board[i][col] == num) return false;
 
