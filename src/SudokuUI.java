@@ -5,6 +5,7 @@ import java.awt.event.*;
 public class SudokuUI extends JFrame {
     private JTextField[][] cells = new JTextField[9][9];
     private int[][] puzzle;
+    
 
     public SudokuUI() {
         setTitle("Sudoku Game");
@@ -22,32 +23,43 @@ public class SudokuUI extends JFrame {
                 field.setFont(font);
                 field.setDocument(new JTextFieldLimit(1));
                 cells[r][c] = field;
+                
+                int top = (r % 3 == 0) ? 3 : 1;
+                int left = (c % 3 == 0) ? 3 : 1;
+                int bottom = (r == 8) ? 3 : 1;
+                int right = (c == 8) ? 3 : 1;
+
+                field.setBorder(BorderFactory.createMatteBorder(top, left, bottom, right, Color.BLACK));
+
                 gridPanel.add(field);
             }
 
         // Buttons
-        JButton newBtn = new JButton("New Game");
+        JButton easyBtn = new JButton("New Game (Easy)");
+        JButton hardBtn = new JButton("New Game (Difficult)");
         JButton checkBtn = new JButton("Check");
         JButton clearBtn = new JButton("Clear");
 
-        newBtn.addActionListener(e -> generatePuzzle());
+        easyBtn.addActionListener(e -> generatePuzzle(40));
+        hardBtn.addActionListener(e -> generatePuzzle(55));
         checkBtn.addActionListener(e -> validateBoard());
         clearBtn.addActionListener(e -> clearInputs());
 
         JPanel controlPanel = new JPanel();
-        controlPanel.add(newBtn);
+        controlPanel.add(easyBtn);
+        controlPanel.add(hardBtn); 
         controlPanel.add(checkBtn);
         controlPanel.add(clearBtn);
 
         add(gridPanel, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
 
-        generatePuzzle();
+        generatePuzzle(40);
     }
 
-    private void generatePuzzle() {
+    private void generatePuzzle(int blanks) {
         clearAll();
-        puzzle = SudokuGenerator.generate();
+        puzzle = SudokuGenerator.generate(blanks);
         for (int r = 0; r < 9; r++)
             for (int c = 0; c < 9; c++) {
                 if (puzzle[r][c] != 0) {

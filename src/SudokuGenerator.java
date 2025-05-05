@@ -1,11 +1,15 @@
 import java.util.Random;
 
 public class SudokuGenerator {
-    public static int[][] generate() {
+	public static int[][] generate() {
+        return generate(40);
+    }
+	
+    public static int[][] generate(int blanks) {
         int[][] board = new int[9][9];
         fillDiagonal(board);
         SudokuSolver.solve(board);
-        removeCells(board, 40); // remove 40 random cells
+        removeCells(board, blanks);
         return board;
     }
 
@@ -47,4 +51,5 @@ public class SudokuGenerator {
             }
         }
     }
+    
 }
